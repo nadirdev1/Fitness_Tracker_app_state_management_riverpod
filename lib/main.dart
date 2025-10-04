@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'screens/onboarding_screen.dart';
+import 'package:fitness_tracker_app_state_management/screens/onboarding_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,7 +16,7 @@ void main() async {
       overrides: [
         hasSeenOnboardingProvider.overrideWithValue(hasSeenOnboarding),
       ],
-      child: MyApp(),
+      child: const MyApp(),
     ),
   );
 }
@@ -62,7 +62,9 @@ class MyApp extends StatelessWidget {
               foregroundColor: Color(0xFF1A237E),
             ),
           ),
-          home: hasSeenOnboarding ? WorkoutListScreen() : OnboardingScreen(),
+          home: hasSeenOnboarding
+              ? const WorkoutListScreen()
+              : const OnboardingScreen(),
         );
       },
     );

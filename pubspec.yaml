@@ -33,6 +33,7 @@ dependencies:
   json_annotation: ^4.9.0 # Annotations pour sérialisation JSON
   flutter_hooks: ^0.21.3+1 # Simplifie le cycle de vie avec hooks
   riverpod_annotation: ^3.0.1 # Annotations pour générateurs Riverpod
+  http: ^1.5.0
 
 dev_dependencies:
   flutter_test: # Tests unitaires et widgets pour Flutter
@@ -44,6 +45,7 @@ dev_dependencies:
   json_serializable: ^6.11.1 # Générateur JSON <-> objets Dart
   riverpod_lint: ^3.0.1
   freezed: ^3.2.3
+
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -1,28 +1,41 @@
-# This file configures the analyzer, which statically analyzes Dart code to
-# check for errors, warnings, and lints.
-#
-# The issues identified by the analyzer are surfaced in the UI of Dart-enabled
-# IDEs (https://dart.dev/tools#ides-and-editors). The analyzer can also be
-# invoked from the command line by running `flutter analyze`.
+# ------------------------------------------------------------
+# analysis_options.yaml
+# Fichier de configuration pour l'analyse statique Dart/Flutter
+# ------------------------------------------------------------
 
-# The following line activates a set of recommended lints for Flutter apps,
-# packages, and plugins designed to encourage good coding practices.
+# 1. Inclut une base de règles Flutter officielle
+#    → apporte déjà un set de bonnes pratiques de Google.
 include: package:flutter_lints/flutter.yaml
 
-linter:
-  # The lint rules applied to this project can be customized in the
-  # section below to disable rules from the `package:flutter_lints/flutter.yaml`
-  # included above or to enable additional rules. A list of all available lints
-  # and their documentation is published at https://dart.dev/lints.
-  #
-  # Instead of disabling a lint rule for the entire project in the
-  # section below, it can also be suppressed for a single line of code
-  # or a specific dart file by using the `// ignore: name_of_lint` and
-  # `// ignore_for_file: name_of_lint` syntax on the line or in the file
-  # producing the lint.
-  rules:
-    # avoid_print: false  # Uncomment to disable the `avoid_print` rule
-    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+analyzer:
+  # 2. Déclare les plugins à charger par l'analyseur.
+  #    - "custom_lint" est le moteur.
+  #    - "riverpod_lint" s'appuie dessus pour ajouter ses propres règles.
+  plugins:
+    - custom_lint
 
-# Additional information about this file can be found at
-# https://dart.dev/guides/language/analysis-options
+  # 3. Exclut certains fichiers/dossiers de l'analyse.
+  #    - "build/**" : fichiers générés par Flutter.
+  #    - "*.g.dart", "*.freezed.dart" : code généré automatiquement.
+  exclude:
+    - build/**
+    - lib/**/*.g.dart
+    - lib/**/*.freezed.dart
+
+  # 4. Ajuste la sévérité de certaines erreurs.
+  #    Exemple : transformer des warnings en erreurs bloquantes.
+  errors:
+    invalid_assignment: error
+    unused_import: warning
+    dead_code: info
+
+linter:
+  # 5. Active/désactive des règles spécifiques.
+  #    → hérite de flutter_lints, tu peux surcharger ici.
+  rules:
+    avoid_print: true            # Préfère logger plutôt que print()
+    prefer_const_constructors: true # Encourage l’usage de const
+    always_use_package_imports: true # Importer avec package: plutôt que relatif
+    unnecessary_this: true       # Évite "this." inutile
+    prefer_final_fields: true    # Rend les champs immuables si possible
+    use_super_parameters: true   # Encourage la syntaxe Dart moderne

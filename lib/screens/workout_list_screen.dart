@@ -1,8 +1,10 @@
+import 'package:fitness_tracker_app_state_management/models/workout/workout.dart';
+import 'package:fitness_tracker_app_state_management/providers/quote_provider/quote_provider.dart';
 import 'package:fitness_tracker_app_state_management/providers/workout_provider/workout_provider.dart';
 import 'package:flutter/material.dart';
-import '../enums/workout_type.dart';
-import '../widgets/workout_calendar_graph.dart';
-import '../widgets/workout_form_dialog.dart';
+import 'package:fitness_tracker_app_state_management/enums/workout_type.dart';
+import 'package:fitness_tracker_app_state_management/widgets/workout_calendar_graph.dart';
+import 'package:fitness_tracker_app_state_management/widgets/workout_form_dialog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class WorkoutListScreen extends StatelessWidget {
@@ -18,17 +20,97 @@ class WorkoutListScreen extends StatelessWidget {
           child: Scaffold(
             appBar: AppBar(
               title: const SizedBox.shrink(),
-              toolbarHeight: 170,
-              flexibleSpace: const SafeArea(
+              toolbarHeight: 224,
+              flexibleSpace: SafeArea(
                 child: Align(
                   alignment: Alignment.bottomCenter,
                   child: Padding(
-                    padding: EdgeInsets.only(
+                    padding: const EdgeInsets.only(
                       bottom: 56.0,
                       left: 16.0,
                       right: 16.0,
                     ),
-                    child: WorkoutCalendarGraph(),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        /* Consumer(
+                          builder: (context, ref, child) {
+                            final quote = ref.watch(getQuoteProvider);
+                            return quote.map(
+                              data: (data) => Text(
+                                '"${data.value.quote}"',
+                                maxLines: 2,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontStyle: FontStyle.italic,
+                                  fontSize: 24,
+                                ),
+                              ),
+                              error: (error) => Text(
+                                error.stackTrace.toString(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 24,
+                                ),
+                              ),
+                              loading: (_) => const CircularProgressIndicator(),
+                            );
+                          },
+                        ), */
+                        Consumer(
+                          builder: (context, ref, child) {
+                            final quote = ref.watch(getQuoteProvider);
+                            ref.listen(getQuoteProvider, (prev, next) {
+                              next.maybeMap(
+                                data: (data) =>
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'New quote : ${data.value.quote}',
+                                        ),
+                                      ),
+                                    ),
+                                orElse: () {},
+                              );
+                            });
+                            return quote.maybeMap(
+                              data: (data) => Column(
+                                children: [
+                                  Text(
+                                    '"${data.value.quote}"',
+                                    maxLines: 2,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontStyle: FontStyle.italic,
+                                      fontSize: 24,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  ElevatedButton(
+                                    onPressed: () =>
+                                        //ref.refresh(getQuoteProvider),
+                                        ref.invalidate(getQuoteProvider),
+                                    child: const Text('Refresh'),
+                                  ),
+                                ],
+                              ),
+                              // error: (error) => Text(
+                              //   error.stackTrace.toString(),
+                              //   style: const TextStyle(
+                              //     color: Colors.white,
+                              //     fontSize: 24,
+                              //   ),
+                              // ),
+                              loading: (_) => const CircularProgressIndicator(),
+                              orElse: () => const SizedBox.shrink(),
+                            );
+                          },
+                        ),
+                        const WorkoutCalendarGraph(),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -66,33 +148,62 @@ class WorkoutListScreen extends StatelessWidget {
   }
 }
 
-class _WorkoutList extends StatelessWidget {
+class _WorkoutList extends ConsumerWidget {
   final WorkoutType type;
 
   const _WorkoutList({required this.type});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final List<Workout> unfiltredWorkouts = ref.watch(workoutProvider);
+    final workouts = unfiltredWorkouts
+        .where((workout) => workout.type == type)
+        .toList();
+    if (workouts.isEmpty) return const Center(child: Text('No workout data'));
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: 2,
+      itemCount: workouts.length,
       itemBuilder: (context, index) {
         return Card(
           child: ListTile(
             enabled: false,
-            title: const Text(
-              "workout 1",
-              style: TextStyle(color: Colors.grey),
+            title: Text(
+              workouts[index].name,
+              style: TextStyle(
+                color: workouts[index].isCompleted ? Colors.grey : Colors.white,
+                decoration: workouts[index].isCompleted
+                    ? TextDecoration.lineThrough
+                    : TextDecoration.none,
+              ),
             ),
-            subtitle: const Text(
-              '1 sets',
-              style: TextStyle(color: Colors.grey),
+            subtitle: Text(
+              '${workouts[index].sets} sets of ${workouts[index].reps} reps at ${workouts[index].weight} kg',
+              style: TextStyle(
+                color: workouts[index].isCompleted ? Colors.grey : Colors.white,
+                decoration: workouts[index].isCompleted
+                    ? TextDecoration.lineThrough
+                    : TextDecoration.none,
+              ),
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Checkbox(value: false, onChanged: (_) {}),
-                IconButton(icon: const Icon(Icons.delete), onPressed: () {}),
+                Checkbox(
+                  value: workouts[index].isCompleted,
+                  onChanged: (_) {
+                    ref
+                        .read(workoutProvider.notifier)
+                        .toggleWorkoutStatus(id: workouts[index].id);
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () {
+                    ref
+                        .read(workoutProvider.notifier)
+                        .removeWorkout(id: workouts[index].id);
+                  },
+                ),
               ],
             ),
           ),
